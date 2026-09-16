@@ -131,9 +131,9 @@
         "Node name for S&R": "AuKGenerateEdit"
       },
       "widgets_values": [
-        "Audio Quality Restoration",
-        "补充高频并提升清晰度",
-        "",
+        "Speech Content Editing",
+        "把“今天下午开会”改成“明天上午开会”",
+        "今天下午开会，请大家准时参加。",
         3.0,
         42,
         "randomize",
@@ -212,7 +212,7 @@
         "Node name for S&R": "SaveAudio"
       },
       "widgets_values": [
-        "auk/音质修复"
+        "auk/speech_content_edit"
       ]
     }
   ],

@@ -131,8 +131,8 @@
         "Node name for S&R": "AuKGenerateEdit"
       },
       "widgets_values": [
-        "Speech Enhancement",
-        "去噪并去除房间混响",
+        "Target Speaker Extraction",
+        "欢迎大家来到今天的节目",
         "",
         3.0,
         42,
@@ -212,7 +212,7 @@
         "Node name for S&R": "SaveAudio"
       },
       "widgets_values": [
-        "auk/语音增强"
+        "auk/target_speaker_extraction"
       ]
     }
   ],

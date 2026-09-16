@@ -1,13 +1,13 @@
 {
-  "last_node_id": 4,
-  "last_link_id": 3,
+  "last_node_id": 5,
+  "last_link_id": 4,
   "nodes": [
     {
       "id": 1,
       "type": "AuKModelLoader",
       "pos": [
         40,
-        80
+        60
       ],
       "size": [
         390,
@@ -38,6 +38,47 @@
     },
     {
       "id": 2,
+      "type": "LoadAudio",
+      "pos": [
+        40,
+        340
+      ],
+      "size": [
+        390,
+        150
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "COMBO",
+          "widget": {
+            "name": "audio"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadAudio"
+      },
+      "widgets_values": [
+        "auk_input.wav"
+      ]
+    },
+    {
+      "id": 3,
       "type": "AuKGenerateEdit",
       "pos": [
         500,
@@ -48,7 +89,7 @@
         430
       ],
       "flags": {},
-      "order": 1,
+      "order": 2,
       "mode": 0,
       "inputs": [
         {
@@ -59,7 +100,7 @@
         {
           "name": "input_audio",
           "type": "AUDIO",
-          "link": null,
+          "link": 2,
           "shape": 7
         }
       ],
@@ -68,8 +109,8 @@
           "name": "Generated Audio",
           "type": "AUDIO",
           "links": [
-            2,
-            3
+            3,
+            4
           ],
           "slot_index": 0
         },
@@ -90,9 +131,9 @@
         "Node name for S&R": "AuKGenerateEdit"
       },
       "widgets_values": [
-        "Instruct TTS (Description)",
-        "你好，欢迎使用 AuK ComfyUI 原生节点。",
-        "自然、清晰、温暖的年轻女性声音",
+        "Volume Editing",
+        "+5",
+        "",
         3.0,
         42,
         "randomize",
@@ -103,7 +144,7 @@
       ]
     },
     {
-      "id": 3,
+      "id": 4,
       "type": "PreviewAudio",
       "pos": [
         1090,
@@ -112,42 +153,6 @@
       "size": [
         330,
         90
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "audio",
-          "type": "AUDIO",
-          "link": 2
-        }
-      ],
-      "outputs": [
-        {
-          "name": "audio",
-          "type": "AUDIO",
-          "links": null,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PreviewAudio"
-      },
-      "widgets_values": [
-        null
-      ]
-    },
-    {
-      "id": 4,
-      "type": "SaveAudio",
-      "pos": [
-        1090,
-        220
-      ],
-      "size": [
-        330,
-        150
       ],
       "flags": {},
       "order": 3,
@@ -168,10 +173,46 @@
         }
       ],
       "properties": {
+        "Node name for S&R": "PreviewAudio"
+      },
+      "widgets_values": [
+        null
+      ]
+    },
+    {
+      "id": 5,
+      "type": "SaveAudio",
+      "pos": [
+        1090,
+        220
+      ],
+      "size": [
+        330,
+        150
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
         "Node name for S&R": "SaveAudio"
       },
       "widgets_values": [
-        "auk/描述生成"
+        "auk/volume_edit"
       ]
     }
   ],
@@ -180,7 +221,7 @@
       1,
       1,
       0,
-      2,
+      3,
       0,
       "AUK_ENGINE"
     ],
@@ -189,14 +230,22 @@
       2,
       0,
       3,
-      0,
+      1,
       "AUDIO"
     ],
     [
       3,
-      2,
+      3,
       0,
       4,
+      0,
+      "AUDIO"
+    ],
+    [
+      4,
+      3,
+      0,
+      5,
       0,
       "AUDIO"
     ]

@@ -164,9 +164,23 @@ python download_models.py --variant flash
 ## Example Workflows
 
 Pre-configured, drag-and-drop workflows in English for all 17 tasks are located in the [`example_workflows/`](example_workflows/) directory:
-- `AuK-01-描述生成语音.json` (Instruct TTS)
-- `AuK-02-参考声音克隆.json` (Zero-shot Voice Clone)
-- `AuK-03` through `AuK-17` covering all editing, enhancement, and separation modes.
+1. `AuK-01-Instruct-TTS.json` — Instruct TTS (from natural language voice description)
+2. `AuK-02-Voice-Clone.json` — Zero-Shot Voice Clone (from reference audio)
+3. `AuK-03-Speech-Content-Editing.json` — Speech Content Editing (word replacement, insertion, deletion)
+4. `AuK-04-Lyric-Editing.json` — Lyric Editing (in singing vocals)
+5. `AuK-05-Pitch-Editing.json` — Pitch Editing (semitones: ±1, ±2, ±3)
+6. `AuK-06-Speed-Editing.json` — Speed Editing (0.5x, 0.75x, 1.25x, 1.5x, 2.0x)
+7. `AuK-07-Volume-Editing.json` — Volume Editing (decibels: ±5, ±10, ±15 dB)
+8. `AuK-08-Emotion-Editing.json` — Emotion Editing (happy, sad, angry, surprised, calm, etc.)
+9. `AuK-09-Timbre-Editing.json` — Timbre Editing (transform vocal timbre via descriptions)
+10. `AuK-10-De-accent.json` — De-accent (convert regional accents to standard speech)
+11. `AuK-11-Nonverbal-Sound-Editing.json` — Nonverbal Sound Editing (add/remove laughter, sigh, breath)
+12. `AuK-12-Whisper-Conversion.json` — Whisper Conversion (whisper <-> normal speech)
+13. `AuK-13-Speech-Enhancement.json` — Speech Enhancement (denoise and dereverberate)
+14. `AuK-14-Audio-Quality-Restoration.json` — Audio Quality Restoration (bandwidth restoration & clarity)
+15. `AuK-15-Speaker-Separation.json` — Speaker Separation (isolate speakers by speaking order)
+16. `AuK-16-Music-Vocal-Separation.json` — Music Vocal Separation (extract singing vocals from music)
+17. `AuK-17-Target-Speaker-Extraction.json` — Target Speaker Extraction (extract speaker matching anchor phrase)
 
 ---
 

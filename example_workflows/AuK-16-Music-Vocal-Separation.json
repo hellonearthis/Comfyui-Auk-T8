@@ -131,8 +131,8 @@
         "Node name for S&R": "AuKGenerateEdit"
       },
       "widgets_values": [
-        "Timbre Editing",
-        "低沉磁性的年轻男声",
+        "Music Vocal Separation",
+        "只保留歌声，去掉说话和伴奏",
         "",
         3.0,
         42,
@@ -212,7 +212,7 @@
         "Node name for S&R": "SaveAudio"
       },
       "widgets_values": [
-        "auk/音色编辑"
+        "auk/music_vocal_separation"
       ]
     }
   ],

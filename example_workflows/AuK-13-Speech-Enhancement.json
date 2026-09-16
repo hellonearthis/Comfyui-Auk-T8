@@ -131,8 +131,8 @@
         "Node name for S&R": "AuKGenerateEdit"
       },
       "widgets_values": [
-        "Whisper Conversion",
-        "转换成耳语",
+        "Speech Enhancement",
+        "去噪并去除房间混响",
         "",
         3.0,
         42,
@@ -212,7 +212,7 @@
         "Node name for S&R": "SaveAudio"
       },
       "widgets_values": [
-        "auk/耳语转换"
+        "auk/speech_enhancement"
       ]
     }
   ],

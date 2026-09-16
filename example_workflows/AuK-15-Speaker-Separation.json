@@ -131,8 +131,8 @@
         "Node name for S&R": "AuKGenerateEdit"
       },
       "widgets_values": [
-        "Pitch Editing",
-        "+1",
+        "Speaker Separation",
+        "第一个开始说话的人",
         "",
         3.0,
         42,
@@ -212,7 +212,7 @@
         "Node name for S&R": "SaveAudio"
       },
       "widgets_values": [
-        "auk/音高编辑"
+        "auk/speaker_separation"
       ]
     }
   ],
