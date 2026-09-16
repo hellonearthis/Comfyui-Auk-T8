@@ -19,7 +19,7 @@
       "inputs": [],
       "outputs": [
         {
-          "name": "AuK 模型",
+          "name": "AuK Engine",
           "type": "AUK_ENGINE",
           "links": [
             1
@@ -106,7 +106,7 @@
       ],
       "outputs": [
         {
-          "name": "生成音频",
+          "name": "Generated Audio",
           "type": "AUDIO",
           "links": [
             3,
@@ -115,13 +115,13 @@
           "slot_index": 0
         },
         {
-          "name": "最终指令",
+          "name": "Final Instruction",
           "type": "STRING",
           "links": null,
           "slot_index": 1
         },
         {
-          "name": "运行参数 JSON",
+          "name": "Parameters JSON",
           "type": "STRING",
           "links": null,
           "slot_index": 2
@@ -131,7 +131,7 @@
         "Node name for S&R": "AuKGenerateEdit"
       },
       "widgets_values": [
-        "参考声音克隆",
+        "Zero-Shot TTS (Voice Clone)",
         "你好，这是使用参考声音生成的测试音频。",
         "",
         3.0,
@@ -140,7 +140,7 @@
         32,
         2.0,
         -1.0,
-        "自动估算（TTS 推荐）"
+        "Auto Estimate (TTS Recommended)"
       ]
     },
     {

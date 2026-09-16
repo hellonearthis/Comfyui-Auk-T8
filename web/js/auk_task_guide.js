@@ -16,18 +16,18 @@ fetch(guideUrl)
 function renderGuide(container, label) {
     const guide = guides[label];
     if (!guide) {
-        container.textContent = "正在载入 AuK 官方任务要求…";
+        container.textContent = "Loading AuK task guide...";
         return;
     }
     container.replaceChildren();
     const title = document.createElement("strong");
-    title.textContent = `官方用法 · ${label}`;
+    title.textContent = `AuK Task Guide · ${label}`;
     const requirement = document.createElement("div");
     requirement.textContent = guide.requirement;
     const fields = document.createElement("div");
-    fields.textContent = `填写：${guide.primary_label}${guide.secondary_label ? `｜${guide.secondary_label}` : ""}`;
+    fields.textContent = `Inputs: ${guide.primary_label}${guide.secondary_label ? ` | ${guide.secondary_label}` : ""}`;
     const example = document.createElement("div");
-    example.textContent = `示例：${guide.example}`;
+    example.textContent = `Example: ${guide.example}`;
     const note = document.createElement("div");
     note.textContent = guide.note;
     note.style.opacity = "0.78";

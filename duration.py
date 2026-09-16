@@ -4,8 +4,8 @@ import math
 import re
 
 TTS_TASK_KEYS = frozenset({"instruct_tts", "zero_shot_tts"})
-AUTO_DURATION_MODE = "自动估算（TTS 推荐）"
-MANUAL_DURATION_MODE = "手动指定"
+AUTO_DURATION_MODE = "Auto Estimate (TTS Recommended)"
+MANUAL_DURATION_MODE = "Manual Duration"
 
 _CJK_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 _SECONDS_PER_UTF8_BYTE = {"en": 0.0656, "zh": 0.0803}
