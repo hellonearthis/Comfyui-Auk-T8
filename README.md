@@ -87,17 +87,33 @@ AuK requires two sets of model files:
 2. **Multimodal Language Model / Audio Encoder** (`Qwen2.5-Omni-3B`)
 
 ### 1. Download AuK Checkpoint
-Download from the official Tencent AuK Hugging Face repository:
-- **Base Model:** [tencent/AuK](https://huggingface.co/tencent/AuK/tree/main)
-- **Flash Model (Optional):** [tencent/AuK-Flash](https://huggingface.co/tencent/AuK-Flash/tree/main)
 
-Download the 3 files (`auk_base.safetensors`, `vae.safetensors`, `config.yaml`) and place them in:
-`ComfyUI/models/auk/AuK/` (or `ComfyUI/models/checkpoints/AuK/`)
+Choose between **AuK Base** (standard, high fidelity, 32-step CFG guidance) and/or **AuK-Flash** (fast, 4-step distilled generation):
+
+#### Option A: AuK Base (Standard / High Fidelity)
+- **Hugging Face Repository:** [tencent/AuK](https://huggingface.co/tencent/AuK/tree/main)
+- **Directory:** `ComfyUI/models/auk/AuK/` (or `ComfyUI/models/checkpoints/AuK/`)
+- **Required Files:** `auk_base.safetensors`, `vae.safetensors`, `config.yaml`
 
 ```bash
 # Using Hugging Face CLI:
-hf download tencent/AuK --include "auk_base.safetensors" "vae.safetensors" "config.yaml" --local-dir ComfyUI/models/auk/AuK
+hf download tencent/AuK auk_base.safetensors vae.safetensors config.yaml --local-dir ComfyUI/models/auk/AuK
 ```
+
+#### Option B: AuK-Flash (Fast 4-Step Distilled)
+- **Hugging Face Repository:** [tencent/AuK-Flash](https://huggingface.co/tencent/AuK-Flash/tree/main)
+- **Directory:** `ComfyUI/models/auk/AuK-Flash/` (or `ComfyUI/models/checkpoints/AuK-Flash/`)
+- **Required Files:** `auk_flash.safetensors`, `vae.safetensors`, `config.yaml`
+
+```bash
+# Using Hugging Face CLI:
+hf download tencent/AuK-Flash auk_flash.safetensors vae.safetensors config.yaml --local-dir ComfyUI/models/auk/AuK-Flash
+```
+
+> **Tip:** The `vae.safetensors` file (637 MB) is identical between AuK Base and AuK-Flash. If you already downloaded AuK Base, you can simply copy `vae.safetensors` into `AuK-Flash/` to save bandwidth:
+> ```cmd
+> copy "C:\cui\models\auk\AuK\vae.safetensors" "C:\cui\models\auk\AuK-Flash\vae.safetensors"
+> ```
 
 ### 2. Download Qwen2.5-Omni-3B
 Download from the official Qwen repository:
