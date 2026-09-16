@@ -82,34 +82,81 @@ pip install -r requirements.txt
 
 ## Model Setup
 
-Place the model checkpoints under `ComfyUI/models/auk/`:
+AuK requires two sets of model files:
+1. **AuK Diffusion Checkpoint** (`AuK` or `AuK-Flash`)
+2. **Multimodal Language Model / Audio Encoder** (`Qwen2.5-Omni-3B`)
 
-```text
-ComfyUI/models/auk/
-├── AuK/
-│   ├── auk_base.safetensors
-│   ├── vae.safetensors
-│   └── config.yaml
-├── AuK-Flash/           (optional for fast 4-step)
-│   ├── auk_flash.safetensors
-│   ├── vae.safetensors
-│   └── config.yaml
-└── Qwen2.5-Omni-3B/
-    ├── config.json
-    ├── generation_config.json
-    ├── model-00001-of-00003.safetensors
-    ├── model-00002-of-00003.safetensors
-    ├── model-00003-of-00003.safetensors
-    └── (tokenizer and config files)
+### 1. Download AuK Checkpoint
+Download from the official Tencent AuK Hugging Face repository:
+- **Base Model:** [tencent/AuK](https://huggingface.co/tencent/AuK/tree/main)
+- **Flash Model (Optional):** [tencent/AuK-Flash](https://huggingface.co/tencent/AuK-Flash/tree/main)
+
+Download the 3 files (`auk_base.safetensors`, `vae.safetensors`, `config.yaml`) and place them in:
+`ComfyUI/models/auk/AuK/` (or `ComfyUI/models/checkpoints/AuK/`)
+
+```bash
+# Using Hugging Face CLI:
+hf download tencent/AuK --include "auk_base.safetensors" "vae.safetensors" "config.yaml" --local-dir ComfyUI/models/auk/AuK
 ```
 
-Weights can be downloaded from:
-- [t8star/Auk-Comfy](https://huggingface.co/t8star/Auk-Comfy) (bundled checkpoints)
-- [tencent/AuK](https://huggingface.co/tencent/AuK) & [Qwen/Qwen2.5-Omni-3B](https://huggingface.co/Qwen/Qwen2.5-Omni-3B)
+### 2. Download Qwen2.5-Omni-3B
+Download from the official Qwen repository:
+- **Model:** [Qwen/Qwen2.5-Omni-3B](https://huggingface.co/Qwen/Qwen2.5-Omni-3B)
 
-Alternatively, run the downloader:
+Place the downloaded files in `ComfyUI/models/LLM/Qwen2.5-Omni-3B/` (or `ComfyUI/models/auk/Qwen2.5-Omni-3B/`):
+
+```bash
+# Using Hugging Face CLI:
+hf download Qwen/Qwen2.5-Omni-3B --local-dir ComfyUI/models/LLM/Qwen2.5-Omni-3B
+```
+
+The node automatically searches for `Qwen2.5-Omni-3B` in:
+- `ComfyUI/models/LLM/Qwen2.5-Omni-3B`
+- `ComfyUI/models/auk/Qwen2.5-Omni-3B`
+- `ComfyUI/models/text_encoders/Qwen2.5-Omni-3B`
+
+> **Tip (Windows Junction / Symlink):** If you store LLMs on another drive or in `models/LLM`, you can also create a directory junction without duplicating 11 GB:
+> ```cmd
+> mklink /J "C:\cui\models\auk\Qwen2.5-Omni-3B" "C:\cui\models\LLM\Qwen2.5-Omni-3B"
+> ```
+
+---
+
+### Complete Folder Layout
+
+```text
+ComfyUI/models/
+├── auk/
+│   ├── AuK/                                 <-- From https://huggingface.co/tencent/AuK/tree/main
+│   │   ├── auk_base.safetensors
+│   │   ├── vae.safetensors
+│   │   └── config.yaml
+│   └── AuK-Flash/                           <-- (Optional) From https://huggingface.co/tencent/AuK-Flash/tree/main
+│       ├── auk_flash.safetensors
+│       ├── vae.safetensors
+│       └── config.yaml
+└── LLM/                                     (or inside models/auk/ or models/text_encoders/)
+    └── Qwen2.5-Omni-3B/                     <-- From https://huggingface.co/Qwen/Qwen2.5-Omni-3B
+        ├── config.json
+        ├── generation_config.json
+        ├── preprocessor_config.json
+        ├── chat_template.json
+        ├── model.safetensors.index.json
+        ├── model-00001-of-00003.safetensors
+        ├── model-00002-of-00003.safetensors
+        ├── model-00003-of-00003.safetensors
+        ├── tokenizer.json
+        ├── tokenizer_config.json
+        ├── spk_dict.pt
+        └── (remaining config/tokenizer files)
+```
+
+### Alternative: Bundled Downloader
+To download all models bundled into `models/auk/` from [t8star/Auk-Comfy](https://huggingface.co/t8star/Auk-Comfy):
 ```bash
 python download_models.py --variant base
+# or for fast 4-step:
+python download_models.py --variant flash
 ```
 
 ---

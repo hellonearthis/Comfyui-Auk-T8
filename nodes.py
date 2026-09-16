@@ -66,30 +66,49 @@ def model_search_roots() -> list[Path]:
     except KeyError:
         pass
 
+    # Also search standard ComfyUI LLM, text_encoders, and checkpoints folders
+    models_dir = Path(folder_paths.models_dir)
+    for folder_name in ("LLM", "text_encoders", "checkpoints"):
+        candidates.append(models_dir / folder_name)
+        try:
+            candidates.extend(Path(path) for path in folder_paths.get_folder_paths(folder_name))
+        except KeyError:
+            pass
+
     roots: list[Path] = []
     seen: set[str] = set()
     for candidate in candidates:
-        normalized = str(candidate.expanduser().resolve()).casefold()
-        if normalized not in seen:
-            roots.append(candidate.expanduser().resolve())
-            seen.add(normalized)
+        try:
+            resolved = candidate.expanduser().resolve()
+            normalized = str(resolved).casefold()
+            if normalized not in seen and resolved.exists():
+                roots.append(resolved)
+                seen.add(normalized)
+        except Exception:
+            continue
     return roots
 
 
 def resolve_model_directory(directory_name: str, manifest: dict[str, Any]) -> Path:
     problems: list[str] = []
     for root in model_search_roots():
-        directory = root / directory_name
-        directory_problems: list[str] = []
-        for filename, details in manifest[directory_name]["files"].items():
-            path = directory / filename
-            if not path.is_file():
-                directory_problems.append(f"Missing {path}")
-            elif path.stat().st_size != int(details["size"]):
-                directory_problems.append(f"Size mismatch {path}")
-        if not directory_problems:
-            return directory
-        problems.extend(directory_problems)
+        candidate_dirs = [root / directory_name]
+        if root.name.casefold() == directory_name.casefold():
+            candidate_dirs.append(root)
+
+        for directory in candidate_dirs:
+            if not directory.is_dir():
+                continue
+            directory_problems: list[str] = []
+            for filename, details in manifest[directory_name]["files"].items():
+                path = directory / filename
+                if not path.is_file():
+                    directory_problems.append(f"Missing {path}")
+                elif path.stat().st_size != int(details["size"]):
+                    directory_problems.append(f"Size mismatch {path}")
+            if not directory_problems:
+                return directory
+            problems.extend(directory_problems)
 
     preview = "; ".join(problems[:5])
     if len(problems) > 5:
@@ -110,8 +129,9 @@ def resolve_model_files(model_variant: str) -> tuple[Path, Path, Path]:
     except FileNotFoundError as exc:
         download_variant = "flash" if model_directory == "AuK-Flash" else "base"
         raise FileNotFoundError(
-            f"{exc}. Please place models in ComfyUI/models/auk, "
-            f"or run: python download_models.py --variant {download_variant}"
+            f"{exc}. Please place {checkpoint_name}, vae.safetensors, config.yaml in ComfyUI/models/auk/{model_directory} "
+            f"(or models/checkpoints/{model_directory}) and Qwen2.5-Omni-3B in ComfyUI/models/LLM/Qwen2.5-Omni-3B "
+            f"(or models/auk/Qwen2.5-Omni-3B), or run: python download_models.py --variant {download_variant}"
         ) from exc
     checkpoint = model_path / checkpoint_name
     config = model_path / "config.yaml"
