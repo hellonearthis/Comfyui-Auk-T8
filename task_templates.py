@@ -248,13 +248,14 @@ def _canonical_content_edit(value: str) -> str:
 
 def _signed_adjustment(value: str, *, allowed: tuple[int, ...], kind: str, unit: str) -> str:
     text = str(value or "").strip().replace("＋", "+").replace("－", "-")
+    folded = text.casefold()
     directions = {
-        "increase": ("升高", "提高", "增加", "调高", "调大"),
-        "decrease": ("降低", "减少", "调低", "调小"),
+        "increase": ("升高", "提高", "增加", "调高", "调大", "increase", "raise", "higher", "up"),
+        "decrease": ("降低", "减少", "调低", "调小", "decrease", "lower", "down"),
     }
     direction = None
     for candidate, words in directions.items():
-        if any(word in text for word in words):
+        if any(word in folded for word in words):
             if direction is not None and direction != candidate:
                 raise ValueError(f"{kind}方向互相冲突：{value!r}")
             direction = candidate
@@ -263,8 +264,11 @@ def _signed_adjustment(value: str, *, allowed: tuple[int, ...], kind: str, unit:
         choices = "/".join(str(item) for item in allowed)
         raise ValueError(f"{kind}请输入带方向的数值，只支持 ±{choices}{unit}")
     remainder = (text[: match.start()] + text[match.end() :]).strip()
-    for word in (*directions["increase"], *directions["decrease"], "个半音", "半音", "分贝", "dB", "db"):
-        remainder = remainder.replace(word, "")
+    for word in (
+        *directions["increase"], *directions["decrease"],
+        "个半音", "半音", "分贝", "dB", "db", "semitones", "semitone", "decibels", "decibel", "by",
+    ):
+        remainder = re.sub(re.escape(word), "", remainder, flags=re.IGNORECASE)
     if remainder.strip(" ，,。"):
         raise ValueError(f"无法识别{kind}数值：{value!r}")
     numeric_text = match.group()
@@ -298,15 +302,25 @@ def _speed_adjustment(value: str) -> str:
 
 
 EMOTION_ALIASES = {
-        "开心": "开心", "高兴": "开心", "愉快": "开心",
-        "愤怒": "愤怒", "生气": "愤怒", "恼怒": "愤怒",
-        "悲伤": "悲伤", "难过": "悲伤", "伤心": "悲伤",
-        "恐惧": "恐惧", "害怕": "恐惧", "惊讶": "惊讶", "吃惊": "惊讶",
-        "厌恶": "厌恶", "嫌弃": "厌恶", "反感": "厌恶",
-        "平静": "平静", "冷静": "平静", "淡定": "平静",
-        "兴奋": "兴奋", "激动": "兴奋",
-        "happy": "开心", "angry": "愤怒", "sad": "悲伤", "fearful": "恐惧", "afraid": "恐惧",
-        "surprised": "惊讶", "disgusted": "厌恶", "calm": "平静", "excited": "兴奋",
+    # Chinese
+    "开心": "开心", "高兴": "开心", "愉快": "开心", "喜悦": "开心", "欢乐": "开心",
+    "愤怒": "愤怒", "生气": "愤怒", "恼怒": "愤怒", "暴怒": "愤怒",
+    "悲伤": "悲伤", "难过": "悲伤", "伤心": "悲伤", "忧伤": "悲伤", "沮丧": "悲伤",
+    "恐惧": "恐惧", "害怕": "恐惧", "惊恐": "恐惧",
+    "惊讶": "惊讶", "吃惊": "惊讶", "震惊": "惊讶",
+    "厌恶": "厌恶", "嫌弃": "厌恶", "反感": "厌恶", "讨厌": "厌恶",
+    "平静": "平静", "冷静": "平静", "淡定": "平静", "中立": "平静",
+    "兴奋": "兴奋", "激动": "兴奋",
+    # English
+    "unhappy": "悲伤",
+    "sadness": "悲伤", "sad": "悲伤", "sorrow": "悲伤",
+    "happiness": "开心", "happy": "开心", "cheerful": "开心", "joyful": "开心", "joy": "开心",
+    "angry": "愤怒", "anger": "愤怒", "furious": "愤怒", "mad": "愤怒",
+    "fearful": "恐惧", "afraid": "恐惧", "fear": "恐惧", "scared": "恐惧",
+    "surprised": "惊讶", "surprise": "惊讶", "shocked": "惊讶",
+    "disgusted": "厌恶", "disgust": "厌恶",
+    "calm": "平静", "peaceful": "平静", "neutral": "平静",
+    "excited": "兴奋", "excitement": "兴奋",
 }
 
 EMOTION_DURATION_MULTIPLIERS = {
@@ -322,10 +336,10 @@ EMOTION_DURATION_MULTIPLIERS = {
 
 
 def normalize_emotion(value: str) -> str:
-    text = str(value or "").strip().strip("。.!！")
-    for alias, label in EMOTION_ALIASES.items():
-        if alias in text:
-            return label
+    folded = str(value or "").strip().strip("。.!！").casefold()
+    for alias in sorted(EMOTION_ALIASES, key=len, reverse=True):
+        if alias.casefold() in folded:
+            return EMOTION_ALIASES[alias]
     raise ValueError("目标情感只支持：开心、愤怒、悲伤、恐惧、惊讶、厌恶、平静、兴奋")
 
 
@@ -421,17 +435,22 @@ def _emotion_instruction(value: str) -> str:
 
 def _whisper_instruction(value: str) -> str:
     text = str(value or "").strip()
-    if any(word in text for word in ("正常", "别耳语", "非耳语")):
+    folded = text.casefold()
+    if any(word in folded for word in ("to normal", "转正常", "转换成正常", "转成正常", "恢复正常")):
         return "把这段耳语转换成正常说话的声音。"
-    if any(word in text for word in ("耳语", "悄悄", "气声")):
+    if any(word in folded for word in ("to whisper", "转耳语", "转换成耳语", "转成耳语")):
         return "用小声耳语的方式把这段话说出来。"
-    raise ValueError("耳语转换请填写“转换成耳语”或“转换成正常说话”")
+    if any(word in folded for word in ("正常", "别耳语", "非耳语", "normal")):
+        return "把这段耳语转换成正常说话的声音。"
+    if any(word in folded for word in ("耳语", "悄悄", "气声", "whisper")):
+        return "用小声耳语的方式把这段话说出来。"
+    raise ValueError("耳语转换请填写“转换成耳语”/“Convert to Whisper”或“转换成正常说话”/“Convert to Normal”")
 
 
 def _enhance_instruction(value: str) -> str:
-    text = str(value or "").strip()
-    has_noise = any(word in text for word in ("噪", "杂音", "底噪"))
-    has_reverb = any(word in text for word in ("混响", "回声"))
+    text = str(value or "").strip().casefold()
+    has_noise = any(word in text for word in ("噪", "杂音", "底噪", "noise", "denoise"))
+    has_reverb = any(word in text for word in ("混响", "回声", "reverb", "dereverb", "echo"))
     if has_noise and not has_reverb:
         return "请只去除这段音频中的背景噪声，保留说话人原有的房间混响以及其它音色，输出等长的去噪结果。"
     if has_reverb and not has_noise:
@@ -440,19 +459,19 @@ def _enhance_instruction(value: str) -> str:
 
 
 def _music_separation_instruction(value: str) -> str:
-    text = str(value or "").strip()
-    if "所有人声" in text:
+    text = str(value or "").strip().casefold()
+    if any(word in text for word in ("所有人声", "all vocals", "all human", "all voice")):
         return "请保留所有人声，说话和歌唱都算，其余声音都去掉。"
-    if any(word in text for word in ("歌声", "歌唱", "唱歌")):
+    if any(word in text for word in ("歌声", "歌唱", "唱歌", "vocal", "vocals", "singing", "acapella", "a cappella")):
         return "请只保留歌声，其余声音都去掉。"
-    raise ValueError("音乐人声提取请填写“只保留歌声”或“保留所有人声（说话和歌唱）”")
+    raise ValueError("音乐人声提取请填写“只保留歌声”/“Keep Vocals”或“保留所有人声”/“Keep All Vocals”")
 
 
 _NONVERBAL_ALIASES = {
-    "呼吸": "呼吸声", "换气": "换气声", "喘气": "喘气声", "breath": "breath",
-    "大笑": "大笑声", "笑声": "笑声", "laugh": "laugh", "laughter": "laughter",
-    "叹息": "叹息声", "叹气": "叹气声", "sigh": "sigh",
-    "清嗓": "清嗓声", "throat clearing": "throat clearing", "咳嗽": "咳嗽声", "cough": "cough",
+    "呼吸": "呼吸声", "换气": "换气声", "喘气": "喘气声", "breath": "呼吸声", "breathing": "呼吸声",
+    "大笑": "大笑声", "笑声": "笑声", "laughter": "笑声", "laugh": "笑声",
+    "叹息": "叹息声", "叹气": "叹气声", "sigh": "叹气声",
+    "清嗓": "清嗓声", "throat clearing": "清嗓声", "咳嗽": "咳嗽声", "cough": "咳嗽声",
     "哦?": '"哦?"的疑问声', "嗯?": '"嗯?"的疑问声', "啊?": '"啊?"的疑问声', "诶?": '"诶?"的疑问声',
     "咦?": '"咦?"的疑问声', "哦": '"哦"的惊讶声', "嗯": '"嗯"的应答声', "呃": '"呃"的语气词',
     "啊": '"啊"的惊讶声',
@@ -481,25 +500,46 @@ def _nonverbal_sound(text: str) -> str:
 
 def _nonverbal_instruction(value: str) -> str:
     text = str(value or "").strip()
+    folded = text.casefold()
     sound = _nonverbal_sound(text)
-    if any(word in text.casefold() for word in ("删除", "删掉", "去掉", "移除", "remove", "delete")):
+    if any(word in folded for word in ("删除", "删掉", "去掉", "移除", "remove", "delete")):
         return f"删除音频中所有的{sound}。"
-    if any(word in text for word in ("开头", "开始", "最前")):
+    if any(word in folded for word in ("开头", "开始", "最前", "start", "beginning")):
         return f"在语音开头增加{sound}。"
-    if any(word in text for word in ("结尾", "末尾", "最后")):
+    if any(word in folded for word in ("结尾", "末尾", "最后", "end", "ending")):
         return f"在语音结尾增加{sound}。"
-    anchor_match = re.search(r"[‘'“\"](.+?)[’'”\"]\s*(前面|前|后面|后)", text)
-    if anchor_match is None:
-        raise ValueError("非语言声音编辑请明确删除、语音开头/结尾，或按示例用引号写锚点：在“欢迎回来”后增加笑声")
-    anchor = _quoted_slot(anchor_match.group(1))
-    side = "前" if anchor_match.group(2).startswith("前") else "后"
-    return f"在“{anchor}”{side}增加{sound}。"
+
+    zh_match = re.search(r'[\'"“”‘’](.+?)[\'"“”‘’]\s*(前面|前|后面|后)', text)
+    if zh_match is not None:
+        anchor = _quoted_slot(zh_match.group(1))
+        side = "前" if zh_match.group(2).startswith("前") else "后"
+        return f"在“{anchor}”{side}增加{sound}。"
+
+    en_pre_match = re.search(r'\b(after|before)\s+[\'"“”‘’](.+?)[\'"“”‘’]', text, flags=re.IGNORECASE)
+    if en_pre_match is not None:
+        anchor = _clean_replacement_slot(en_pre_match.group(2))
+        side = "前" if en_pre_match.group(1).lower() == "before" else "后"
+        return f"在“{anchor}”{side}增加{sound}。"
+
+    en_post_match = re.search(r'[\'"“”‘’](.+?)[\'"“”‘’]\s*\b(after|before)\b', text, flags=re.IGNORECASE)
+    if en_post_match is not None:
+        anchor = _clean_replacement_slot(en_post_match.group(1))
+        side = "前" if en_post_match.group(2).lower() == "before" else "后"
+        return f"在“{anchor}”{side}增加{sound}。"
+
+    en_noquotes = re.search(r'\b(after|before)\s+([A-Za-z0-9\s]+?)(?:\s+(?:add|insert|include)\b|\s*$)', text, flags=re.IGNORECASE)
+    if en_noquotes is not None:
+        anchor = _clean_replacement_slot(en_noquotes.group(2))
+        side = "前" if en_noquotes.group(1).lower() == "before" else "后"
+        return f"在“{anchor}”{side}增加{sound}。"
+
+    raise ValueError("非语言声音编辑请明确删除、语音开头/结尾，或按示例用引号写锚点：在“欢迎回来”后增加笑声 / Add laughter after 'welcome back'")
 
 
 def _cleanup_mode(value: str) -> str | None:
-    text = str(value or "")
-    denoise = any(word in text for word in ("去噪", "降噪", "去底噪", "去杂音", "去除噪声"))
-    dereverb = any(word in text for word in ("去混响", "去除混响", "去回声", "去除回声"))
+    text = str(value or "").casefold()
+    denoise = any(word in text for word in ("去噪", "降噪", "去底噪", "去杂音", "去除噪声", "denoise", "noise"))
+    dereverb = any(word in text for word in ("去混响", "去除混响", "去回声", "去除回声", "dereverb", "reverb", "echo"))
     if denoise and dereverb:
         return "both"
     if denoise:
@@ -511,8 +551,13 @@ def _cleanup_mode(value: str) -> str | None:
 
 def _quality_instruction(value: str) -> str:
     text = str(value or "").strip()
+    folded = text.casefold()
     cleanup = _cleanup_mode(text)
-    if any(word in text for word in ("带宽", "高频", "超分辨率", "清晰度", "补频")):
+    if not text or any(word in folded for word in (
+        "带宽", "高频", "超分辨率", "清晰度", "补频",
+        "bandwidth", "clarity", "frequency", "frequencies", "super resolution",
+        "restore", "restoration", "boost", "enhance", "enhancement", "quality"
+    )):
         if cleanup == "both":
             return "请对这段语音做超分辨率/带宽扩展处理，恢复被削掉的高频成分，同时完成去噪与去混响，输出宽带纯净人声。"
         if cleanup == "denoise":
@@ -521,12 +566,12 @@ def _quality_instruction(value: str) -> str:
             return "请对这段语音做超分辨率/带宽扩展处理，恢复被削掉的高频成分，同时去除房间混响，输出宽带纯净人声。"
         return "This audio suffers from limited bandwidth. Please restore it to a wideband, clear-sounding speech."
     effects = (
-        ("telephone", ("电话", "手机", "窄带")),
-        ("megaphone", ("扩音器", "喇叭", "广播")),
-        ("underwater", ("水下", "闷声", "发闷")),
-        ("clipping", ("削波", "破音", "爆音")),
-        ("dropout", ("丢包", "瞬断", "断续")),
-        ("dc", ("直流", "偏置")),
+        ("telephone", ("电话", "手机", "窄带", "telephone", "phone", "narrowband")),
+        ("megaphone", ("扩音器", "喇叭", "广播", "megaphone", "loudspeaker")),
+        ("underwater", ("水下", "闷声", "发闷", "underwater", "muffled")),
+        ("clipping", ("削波", "破音", "爆音", "clipping", "clipped", "distortion")),
+        ("dropout", ("丢包", "瞬断", "断续", "dropout", "dropouts", "packet loss")),
+        ("dc", ("直流", "偏置", "dc offset", "dc bias")),
     )
     prompts = {
         "telephone": {
@@ -567,21 +612,47 @@ def _quality_instruction(value: str) -> str:
         },
     }
     for effect, aliases in effects:
-        if any(alias in text for alias in aliases):
+        if any(alias in folded for alias in aliases):
             return prompts[effect][cleanup]
-    raise ValueError("音质修复请填写“补充高频并提升清晰度”，或明确电话、扩音器、水下闷声等音色问题")
+    raise ValueError("音质修复请填写“补充高频并提升清晰度”(Boost high frequencies and enhance clarity)，或明确电话、扩音器、水下闷声等音色问题")
 
 
 _ZH_ORDINALS = {"一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9, "十": 10}
+_EN_ORDINALS = {
+    "first": 1, "1st": 1,
+    "second": 2, "2nd": 2,
+    "third": 3, "3rd": 3,
+    "fourth": 4, "4th": 4,
+    "fifth": 5, "5th": 5,
+}
 
 
 def _speaker_order_instruction(primary: str, secondary: str) -> str:
     text = f"{primary} {secondary}".strip()
-    match = re.search(r"第?\s*(\d+|[一二两三四五六七八九十])\s*(?:个|位)?(?:开始)?说话", text)
-    if match is None:
-        raise ValueError("说话人分离请填写开始说话的顺序，例如“第一个开始说话的人”")
-    raw = match.group(1)
-    order = int(raw) if raw.isdigit() else _ZH_ORDINALS[raw]
+    folded = text.casefold()
+    order = None
+    if not folded:
+        order = 1
+    else:
+        match = re.search(r"第?\s*(\d+|[一二两三四五六七八九十])\s*(?:个|位)?(?:开始)?说话", text)
+        if match is not None:
+            raw = match.group(1)
+            order = int(raw) if raw.isdigit() else _ZH_ORDINALS[raw]
+        else:
+            digit_match = re.search(r"\bspeaker\s*#?\s*(\d+)\b", folded)
+            if digit_match is not None:
+                order = int(digit_match.group(1))
+            else:
+                en_match = re.search(
+                    r"\b(first|second|third|fourth|fifth|1st|2nd|3rd|4th|5th|\d+)(?:st|nd|rd|th)?(?:\s+(?:speaker|person|one|voice))?(?:\s+(?:who|that)?\s*(?:speaks?|to\s+speak|talks?|to\s+talk))?\b",
+                    folded,
+                )
+                if en_match is not None:
+                    raw = en_match.group(1)
+                    order = _EN_ORDINALS.get(raw) or (int(raw) if raw.isdigit() else None)
+
+    if order is None:
+        raise ValueError("说话人分离请填写开始说话的顺序，例如“第一个开始说话的人”或“first speaker” / “The first person to speak”")
     if order < 1:
         raise ValueError("说话人顺序必须从 1 开始")
     zh = next((key for key, number in _ZH_ORDINALS.items() if number == order and key != "两"), str(order))
@@ -607,6 +678,13 @@ def _target_speaker_instruction(primary: str, secondary: str) -> str:
     if cleanup == "both":
         return f"请在这段输入语音中保留说“{spoken_text}”的那位说话人，去掉其他说话人，并去除其中的噪声和混响，输出单条纯净人声。"
     return f"Keep only the speaker who says “{spoken_text}”"
+
+
+def _deaccent_instruction(value: str) -> str:
+    text = str(value or "").strip()
+    if re.search(r"[a-zA-Z]", text):
+        return "Remove the regional accent while preserving the speaker's voice and content."
+    return "请去掉这段语音里的方言口音，保持说话人音色一致。"
 
 
 def _timbre_instruction(value: str) -> str:
@@ -649,6 +727,8 @@ def build_instruction(task_key: str, primary: str, secondary: str = "") -> str:
         return _target_speaker_instruction(primary, secondary)
     if task_key == "timbre":
         return _timbre_instruction(primary)
+    if task_key == "deaccent":
+        return _deaccent_instruction(primary)
     templates = {
         # The official field is required.  The local API supplies an explicit,
         # documented product default so programmatic callers remain compatible.
@@ -656,6 +736,5 @@ def build_instruction(task_key: str, primary: str, secondary: str = "") -> str:
         # Match AuK's training prompt exactly. Extra transcript or descriptive
         # prose can make the model continue the reference audio's content.
         "zero_shot_tts": f'Say the following with the same voice: "{primary}"',
-        "deaccent": "请去掉这段语音里的方言口音，保持说话人音色一致。",
     }
     return templates[task_key].strip()

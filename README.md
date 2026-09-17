@@ -13,12 +13,12 @@ Based on [T8mars/Comfyui-Auk-T8](https://github.com/T8mars/Comfyui-Auk-T8) and T
 ---
 
 A standalone, native ComfyUI V3 custom node package for **AuK**, **AuK-Flash**, and **Qwen2.5-Omni-3B**. All inference executes directly within the ComfyUI process with native ComfyUI memory management and stage-based VRAM offloading.
-
 ### Features in this English Edition:
 - **Full English UI:** Node titles, input/output socket names, tooltips, and floating task guide boxes are in English.
 - **17 English Task Types:** Fully translated task options covering text-to-speech, voice cloning, audio editing, enhancement, and voice separation.
+- **Natural English & Bilingual Prompts:** Directly accepts natural English phrases across all tasks with robust parsing and case-insensitivity—no Chinese characters required.
 - **Bilingual Backwards Compatibility:** Preserves legacy alias mappings so workflows created with Chinese labels load and execute without validation errors.
-- **Native ComfyUI Model Paths:** Seamlessly checks `models/auk` and standard ComfyUI model directories.
+- **Native ComfyUI Model Paths:** Seamlessly checks `models/auk`, `models/LLM`, and standard ComfyUI model directories.
 
 ---
 
@@ -43,27 +43,27 @@ Executes the full suite of AuK speech generation and audio editing tasks:
 
 ---
 
-## Supported Tasks
+## Supported Tasks & Prompt Guide
 
-| Category | Task | Description |
+| Task | Primary Content Examples | Description & Notes |
 | :--- | :--- | :--- |
-| **Speech Generation** | **Instruct TTS (Description)** | Generate speech from text with natural language voice description (no audio input needed). |
-| | **Zero-Shot TTS (Voice Clone)** | Speak new target text cloned from reference audio. |
-| **Audio Editing** | **Speech Content Editing** | Insert, delete, or replace words in speech recordings. |
-| | **Lyric Editing** | Edit lyrics in isolated vocal/a cappella recordings while preserving melody. |
-| | **Pitch Editing** | Adjust vocal pitch by semitones (±1, ±2, ±3). |
-| | **Speed Editing** | Adjust tempo/speed (0.5x, 0.75x, 1.25x, 1.5x, 2.0x). Duration scales automatically. |
-| | **Volume Editing** | Adjust volume levels by decibels (±5, ±10, ±15 dB). |
-| | **Emotion Editing** | Modify vocal emotion (happy, sad, angry, fearful, surprised, disgusted, calm, excited). |
-| | **Timbre Editing** | Transform vocal timbre using descriptive prompts. |
-| | **De-accent** | Remove regional accents or dialects into standard speech. |
-| | **Nonverbal Sound Editing** | Add or remove nonverbal sounds (laughter, sigh, cough, breath). |
-| | **Whisper Conversion** | Convert speech between whispering and normal voice. |
-| **Restoration & Separation** | **Speech Enhancement** | Denoise, remove hum, and dereverberate room acoustics. |
-| | **Audio Quality Restoration** | Restore high frequencies, expand bandwidth, and remove muffled/telephone artifacts. |
-| | **Speaker Separation** | Separate and isolate speakers based on speaking order. |
-| | **Music Vocal Separation** | Extract singing vocals from music mix or remove instruments. |
-| | **Target Speaker Extraction** | Isolate a specific speaker matching a spoken anchor phrase. |
+| **Instruct TTS (Description)** | `Welcome back, you did a great job today.` | Generates speech from text. In **Secondary Content**, describe the voice (e.g. *Young female voice, gentle, warm*). |
+| **Zero-Shot TTS (Voice Clone)** | `Ladies and gentlemen, thank you for coming.` | Clones the reference audio speaker's voice to speak new text. |
+| **Speech Content Editing** | `Replace 'bad' with 'good'`<br>`Add 'again' after 'welcome'`<br>`Remove 'um'` | Edits spoken words while maintaining original speaker voice and tempo. Quotes can be single, double, or Chinese. |
+| **Lyric Editing** | `Change 'rear view' to 'like you'` | Edits lyrics in isolated vocal/a cappella recordings while preserving singing melody and pitch. |
+| **Pitch Editing** | `+2 semitones`, `-1 semitone`, `+3`, `-2` | Shifts vocal pitch up or down by 1, 2, or 3 semitones. |
+| **Speed Editing** | `1.5x`, `0.75x`, `2.0x`, `0.5` | Adjusts speech tempo (0.5x, 0.75x, 1.25x, 1.5x, 2.0x). Audio duration scales automatically. |
+| **Volume Editing** | `+10 dB`, `-5 dB`, `+15`, `-10` | Boosts or attenuates vocal loudness by ±5, ±10, or ±15 dB. |
+| **Emotion Editing** | `Happy`, `Sad` (or `Sadness`), `Angry`, `Fearful` (or `Afraid`), `Surprised`, `Disgusted`, `Calm`, `Excited` | Adjusts vocal emotion while preserving words and speaker identity. |
+| **Timbre Editing** | `Deep, resonant young male voice` | Transforms vocal timbre using natural language descriptions. |
+| **De-accent** | `Remove regional accent, convert to standard pronunciation` | Removes regional dialect or non-native accents toward standard neutral pronunciation. *(Note: standardizes accents; not for cross-accent conversion like US to UK).* |
+| **Nonverbal Sound Editing** | `Add laughter after 'welcome back'`<br>`Add sigh at the beginning`<br>`Remove all breath sounds` | Inserts or removes nonverbal acoustic events (laughter, breath, cough, sigh). Supports `after`, `before`, `beginning`, `end`. |
+| **Whisper Conversion** | `Convert to whisper`<br>`Convert to normal speech` | Converts between standard phonation and whispering. |
+| **Speech Enhancement** | `Denoise and remove room reverberation`<br>`Remove background noise` | Cleans noisy speech, removes background hum, and strips room reverb. |
+| **Audio Quality Restoration** | `Boost high frequencies and enhance clarity`<br>`Remove telephone effect`<br>*(or leave blank)* | High-frequency bandwidth expansion and defect restoration. Supports `telephone`, `megaphone`, `underwater` (muffled), `clipping`, `dropout`, `dc offset`. |
+| **Speaker Separation** | `First speaker`, `The first person to speak`, `Speaker #2`<br>*(or leave blank for 1st speaker)* | Isolates a specific speaker in a multi-speaker recording based on the order they start speaking. |
+| **Music Vocal Separation** | `Keep vocals only`<br>`Keep all human voices, remove instruments` | Isolates singing vocals from accompaniment or extracts all human vocal tracks. |
+| **Target Speaker Extraction** | `Welcome everyone to today's show` | Extracts a specific speaker from a multi-speaker audio by matching a phrase spoken by that target. |
 
 ---
 

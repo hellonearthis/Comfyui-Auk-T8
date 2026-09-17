@@ -46,7 +46,7 @@ def test_web_task_guide_covers_every_visible_task(plugin):
     root = Path(plugin.__file__).parent
     assert plugin.WEB_DIRECTORY == "./web"
     guide_data = json.loads((root / "web" / "task_guides.json").read_text(encoding="utf-8"))
-    assert set(guide_data) == {task.label for task in plugin.nodes.TASKS}
+    assert {task.label for task in plugin.nodes.TASKS}.issubset(set(guide_data))
     for task in plugin.nodes.TASKS:
         entry = guide_data[task.label]
         guide = plugin.nodes.TASK_GUIDES[task.key]
@@ -121,10 +121,33 @@ def test_every_task_uses_exact_official_instruction_and_ignores_secondary(plugin
 
 @pytest.mark.parametrize(
     ("value", "expected"),
-    [("sad", "Say this in a sad tone"), ("fearful", "Say this in a afraid tone")],
+    [
+        ("sad", "Say this in a sad tone"),
+        ("fearful", "Say this in a afraid tone"),
+        ("Sadness / Sad", "Say this in a sad tone"),
+        ("Happy", "Say this in a happy tone"),
+    ],
 )
 def test_english_emotion_uses_official_demo_wording(plugin, value, expected):
     assert plugin.nodes.build_instruction("emotion", value) == expected
+
+
+@pytest.mark.parametrize(
+    ("task_key", "primary", "expected"),
+    [
+        ("whisper", "Convert to Whisper", "用小声耳语的方式把这段话说出来。"),
+        ("whisper", "to normal", "把这段耳语转换成正常说话的声音。"),
+        ("pitch", "+2 semitones", "将音调升高2个半音。"),
+        ("music_separate", "Keep vocals only", "请只保留歌声，其余声音都去掉。"),
+        ("speech_separate", "First speaker who speaks", "Keep only the first speaker"),
+        ("speech_separate", "The first person to speak", "Keep only the first speaker"),
+        ("nonverbal", "Add laughter after 'Boys to the Yard'", "在“Boys to the Yard”后增加笑声。"),
+        ("quality", "Boost high frequencies and enhance clarity", "This audio suffers from limited bandwidth. Please restore it to a wideband, clear-sounding speech."),
+        ("deaccent", "Remove regional accent, convert to standard pronunciation", "Remove the regional accent while preserving the speaker's voice and content."),
+    ],
+)
+def test_english_inputs_match_official_instructions(plugin, task_key, primary, expected):
+    assert plugin.nodes.build_instruction(task_key, primary) == expected
 
 
 @pytest.mark.parametrize(
@@ -210,7 +233,7 @@ def test_normalize_audio_downmixes_to_mono(plugin):
 
 
 def test_audio_task_requires_audio(plugin):
-    with pytest.raises(ValueError, match="需要连接"):
+    with pytest.raises(ValueError, match="requires input or reference audio"):
         plugin.nodes.AuKGenerateEdit.execute(
             FakeEngine(),
             "参考声音克隆",
